@@ -319,12 +319,16 @@ def test_cli_fetch_command_usage():
         "    --ldp-application-secret TEXT\n"
         "    --ldp-application-key TEXT\n"
         "    --ldp-endpoint TEXT\n"
+        "  graylog backend: \n"
+        "    --graylog-client-options TEXT\n"
+        "    --graylog-port INTEGER\n"
+        "    --graylog-host TEXT\n"
         "  es backend: \n"
         "    --es-op-type TEXT\n"
         "    --es-client-options KEY=VALUE,KEY=VALUE\n"
         "    --es-index TEXT\n"
         "    --es-hosts TEXT\n"
-        "  -b, --backend [es|ldp|fs|swift|ws]\n"
+        "  -b, --backend [es|graylog|ldp|fs|swift|ws]\n"
         "                                  Backend  [required]\n"
         "  -c, --chunk-size INTEGER        Get events by chunks of size #\n"
     ) in result.output
@@ -333,7 +337,7 @@ def test_cli_fetch_command_usage():
     assert result.exit_code > 0
     assert (
         "Error: Missing option '-b' / '--backend'. "
-        "Choose from:\n\tes,\n\tldp,\n\tfs,\n\tswift,\n\tws\n"
+        "Choose from:\n\tes,\n\tgraylog,\n\tldp,\n\tfs,\n\tswift,\n\tws\n"
     ) in result.output
 
 

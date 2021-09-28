@@ -7,5 +7,6 @@ class BackendTypes(Enum):
     """Backend types"""
 
     DATABASE = auto()
+    LOGGING = auto()
     STORAGE = auto()
     STREAM = auto()

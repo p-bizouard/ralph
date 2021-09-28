@@ -20,6 +20,15 @@ class DatabaseBackends(Enum):
     ES = "ralph.backends.database.es.ESDatabase"
 
 
+class LoggingBackends(Enum):
+    """Enumerate active logging backend modules.
+
+    Adding an entry to this enum will make it available to the CLI.
+    """
+
+    GRAYLOG = "ralph.backends.logging.graylog.GraylogLogging"
+
+
 class Parsers(Enum):
     """Enumerate active parsers modules.
 
@@ -127,3 +136,5 @@ CONVERTER_EDX_XAPI_UUID_NAMESPACE = config(
     "RALPH_CONVERTER_EDX_XAPI_UUID_NAMESPACE", None
 )
 EXECUTION_ENVIRONMENT = config("RALPH_EXECUTION_ENVIRONMENT", "development")
+RALPH_GRAYLOG_HOST = config("RALPH_GRAYLOG_HOST", "graylog")
+RALPH_GRAYLOG_PORT = config("RALPH_GRAYLOG_PORT", 12201)

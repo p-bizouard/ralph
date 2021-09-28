@@ -8,6 +8,7 @@ from importlib import import_module
 
 from ralph.backends import BackendTypes
 from ralph.backends.database.base import BaseDatabase as BaseDatabaseBackend
+from ralph.backends.logging.base import BaseLogging as BaseLoggingBackend
 from ralph.backends.storage.base import BaseStorage as BaseStorageBackend
 from ralph.backends.stream.base import BaseStream as BaseStreamBackend
 
@@ -37,10 +38,12 @@ def import_string(dotted_path):
 def get_backend_type(backend_class):
     """Get backend type from a backend class"""
 
-    if BaseStorageBackend in backend_class.__mro__:
-        return BackendTypes.STORAGE
     if BaseDatabaseBackend in backend_class.__mro__:
         return BackendTypes.DATABASE
+    if BaseLoggingBackend in backend_class.__mro__:
+        return BackendTypes.LOGGING
+    if BaseStorageBackend in backend_class.__mro__:
+        return BackendTypes.STORAGE
     if BaseStreamBackend in backend_class.__mro__:
         return BackendTypes.STREAM
     return None

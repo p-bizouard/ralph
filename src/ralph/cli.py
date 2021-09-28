@@ -15,6 +15,7 @@ from ralph.defaults import (
     DEFAULT_BACKEND_CHUNK_SIZE,
     ENVVAR_PREFIX,
     DatabaseBackends,
+    LoggingBackends,
     Parsers,
     StorageBackends,
     StreamBackends,
@@ -37,10 +38,13 @@ logger = logging.getLogger(__name__)
 
 # Lazy evaluations
 DATABASE_BACKENDS = (lambda: [backend.value for backend in DatabaseBackends])()
+LOGGING_BACKENDS = (lambda: [backend.value for backend in LoggingBackends])()
 PARSERS = (lambda: [parser.value for parser in Parsers])()
 STORAGE_BACKENDS = (lambda: [backend.value for backend in StorageBackends])()
 STREAM_BACKENDS = (lambda: [backend.value for backend in StreamBackends])()
-BACKENDS = (lambda: DATABASE_BACKENDS + STORAGE_BACKENDS + STREAM_BACKENDS)()
+BACKENDS = (
+    lambda: DATABASE_BACKENDS + LOGGING_BACKENDS + STORAGE_BACKENDS + STREAM_BACKENDS
+)()
 
 
 class CommaSeparatedKeyValueParamType(click.ParamType):
@@ -312,6 +316,8 @@ def fetch(backend, archive, chunk_size, **options):
         backend.get(chunk_size=chunk_size)
     elif backend_type == BackendTypes.STREAM:
         backend.stream()
+    elif backend_type == BackendTypes.LOGGING:
+        backend.get(chunk_size)
     elif backend_type is None:
         msg = "Cannot find an implemented backend type for backend %s"
         logger.error(msg, backend)
@@ -319,7 +325,9 @@ def fetch(backend, archive, chunk_size, **options):
 
 
 @click.argument("archive", required=False)
-@backends_options(backends=(lambda: DATABASE_BACKENDS + STORAGE_BACKENDS)())
+@backends_options(
+    backends=(lambda: DATABASE_BACKENDS + LOGGING_BACKENDS + STORAGE_BACKENDS)()
+)
 @click.option(
     "-c",
     "--chunk-size",
@@ -353,6 +361,8 @@ def push(backend, archive, chunk_size, force, ignore_errors, **options):
 
     if backend_type == BackendTypes.STORAGE:
         backend.write(archive, overwrite=force)
+    elif backend_type == BackendTypes.LOGGING:
+        backend.send(chunk_size, ignore_errors)
     elif backend_type == BackendTypes.DATABASE:
         backend.put(chunk_size=chunk_size, ignore_errors=ignore_errors)
     elif backend_type is None:
