@@ -15,7 +15,9 @@ services:
       PYLINTHOME: /app/.pylint.d
     volumes:
       - .:/app
-
+    networks:
+      default:
+        
   # -- backends
   elasticsearch:
     image: elasticsearch:7.13.3
@@ -43,8 +45,10 @@ services:
       default:
 
   graylog:
-    image: graylog/graylog:4.0
+    image: graylog/graylog:4.2.1
     environment:
+      - GRAYLOG_PASSWORD_SECRET=somepasswordpepper
+      - GRAYLOG_ROOT_PASSWORD_SHA2=d74ff0ee8da3b9806b18c877dbf29bbde50b5bd8e4dad7a3a725000feb82e8f1
       - GRAYLOG_HTTP_EXTERNAL_URI=http://localhost:9000/
     entrypoint: /usr/bin/tini -- wait-for-it elasticsearch:9200 --  /docker-entrypoint.sh
     networks:
