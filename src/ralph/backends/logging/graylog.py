@@ -97,7 +97,7 @@ class GraylogAPI:
 
     def search_logs(self, params):
 
-        return self.get(f"/api/search/universal/relative", params=params)
+        return self.get("/api/search/universal/relative", params=params)
 
 
 class GraylogLogging(HistoryMixin, BaseLogging):
@@ -136,7 +136,7 @@ class GraylogLogging(HistoryMixin, BaseLogging):
 
     @property
     def input_configuration(self):
-        """ """
+        """Returns input configuration"""
 
         return {
             "node": self.api.get_node_id(),
@@ -151,7 +151,9 @@ class GraylogLogging(HistoryMixin, BaseLogging):
         }
 
     def check_input_exists(self, inputs, title):
-        """Returns True if a given input has already been created in the Graylog cluster."""
+        """Returns `True` if a given input has already been created in the
+        Graylog cluster.
+        """
 
         for input in inputs:
             if input["title"] == title:
