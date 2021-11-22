@@ -2,6 +2,7 @@
 
 import json
 import logging
+from os import stat
 import sys
 from itertools import zip_longest
 
@@ -169,14 +170,16 @@ class GraylogLogging(HistoryMixin, BaseLogging):
         logger.debug("Logging events (chunk size: %d)", chunk_size)
 
         chunks = zip_longest(*([iter(sys.stdin.readlines())] * chunk_size))
+        inputs = json.loads(self.api.list_inputs())["inputs"]
+        title = self.input_configuration["title"]
 
-        with self.check_input_exists(
-            self.api.list_inputs()["inputs"], title=self.input_configuration["title"]
-        ) as input_id:
-            if input_id is None:  # Creates the input
-                input_id = self.api.launch_input(data=self.input_configuration)["id"]
+        input_id = self.check_input_exists(inputs=inputs, title=title)
+        if input_id is None:
+            input_id = json.loads(self.api.launch_input(data=self.input_configuration))[
+                "id"
+            ]
 
-            self.api.activate_input(input_id=input_id)
+        self.api.activate_input(input_id=input_id)
 
         handler = GELFTCPSocketHandler(host=self.host, port=self.port)
         handler.setFormatter(GELFFormatter())
