@@ -12,9 +12,9 @@ from logging_gelf.handlers import GELFTCPSocketHandler
 from ...defaults import (
     RALPH_GRAYLOG_ADMIN_PASSWORD,
     RALPH_GRAYLOG_ADMIN_USERNAME,
+    RALPH_GRAYLOG_EXTERNAL_PORT,
     RALPH_GRAYLOG_HOST,
     RALPH_GRAYLOG_PORT,
-    RALPH_GRAYLOG_EXTERNAL_PORT,
 )
 from ..mixins import HistoryMixin
 from .base import BaseLogging
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class GraylogAPI:
-    """ """
+    """Defines Graylog API useful endpoints functions."""
 
     def __init__(self, url, username, password, headers):
 
@@ -50,11 +50,11 @@ class GraylogAPI:
 
             return result.text
 
-    def post(self, endpoint, json):
+    def post(self, endpoint, data):
         """POST method."""
 
         with requests.post(
-            f"{self.url}{endpoint}", json=json, auth=self._auth, headers=self.headers
+            f"{self.url}{endpoint}", json=data, auth=self._auth, headers=self.headers
         ) as result:
             result.raise_for_status()
 
@@ -80,13 +80,13 @@ class GraylogAPI:
 
         return self.get("/api/system/inputs")
 
-    def launch_input(self, json):
+    def launch_input(self, data):
         """Launches a new input on the Graylog cluster."""
 
-        return self.post("/api/system/inputs", json=json)
+        return self.post("/api/system/inputs", data=data)
 
     def input_state(self, input_id):
-        """ """
+        """Returns identified input with `given_id`."""
 
         return self.get(f"/api/system/inputstates/{input_id}")
 
@@ -96,6 +96,7 @@ class GraylogAPI:
         return self.put(f"/api/system/inputstates/{input_id}")
 
     def search_logs(self, params):
+        """Returns logs matching given `params` parameters."""
 
         return self.get("/api/search/universal/relative", params=params)
 
@@ -150,30 +151,32 @@ class GraylogLogging(HistoryMixin, BaseLogging):
             "type": "org.graylog2.inputs.gelf.tcp.GELFTCPInput",
         }
 
-    def check_input_exists(self, inputs, title):
-        """Returns `True` if a given input has already been created in the
+    @staticmethod
+    def check_input_exists(inputs, title):
+        """Returns the `input_id` of a given input if it has already been created in the
         Graylog cluster.
         """
 
-        for input in inputs:
+        for input in inputs:  # pylint:disable=redefined-builtin
             if input["title"] == title:
-                return True
+                return input["id"]
 
-        return False
+        return None
 
-    def send(self, chunk_size, ignore_errors=False):
+    def send(self, chunk_size=10, ignore_errors=False):
         """Send logs in graylog backend (one JSON event per line)."""
 
         logger.debug("Logging events (chunk size: %d)", chunk_size)
 
         chunks = zip_longest(*([iter(sys.stdin.readlines())] * chunk_size))
 
-        if not self.check_input_exists(
+        with self.check_input_exists(
             self.api.list_inputs()["inputs"], title=self.input_configuration["title"]
-        ):
-            self.api.launch_input(json=self.input_configuration)
+        ) as input_id:
+            if input_id is None:  # Creates the input
+                input_id = self.api.launch_input(data=self.input_configuration)["id"]
 
-        self.api.activate_input()
+            self.api.activate_input(input_id=input_id)
 
         handler = GELFTCPSocketHandler(host=self.host, port=self.port)
         handler.setFormatter(GELFFormatter())
