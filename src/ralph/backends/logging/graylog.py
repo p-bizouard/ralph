@@ -2,9 +2,9 @@
 
 import json
 import logging
-from os import stat
 import sys
 from itertools import zip_longest
+from os import stat
 
 import requests
 from logging_gelf.formatters import GELFFormatter
@@ -49,7 +49,7 @@ class GraylogAPI:
 
             result.raise_for_status()
 
-            return result.text
+            return result
 
     def post(self, endpoint, data):
         """POST method."""
@@ -59,7 +59,7 @@ class GraylogAPI:
         ) as result:
             result.raise_for_status()
 
-            return result.text
+            return result
 
     def put(self, endpoint):
         """PUT method."""
@@ -74,12 +74,12 @@ class GraylogAPI:
     def get_node_id(self):
         """Returns node id of the Graylog cluster."""
 
-        return next(iter(json.loads(self.get(endpoint="/api/cluster"))))
+        return next(iter(json.loads(self.get(endpoint="/api/cluster").text)))
 
     def list_inputs(self):
         """Returns list of the created inputs on the Graylog cluster."""
 
-        return self.get("/api/system/inputs")
+        return self.get("/api/system/inputs").text
 
     def launch_input(self, data):
         """Launches a new input on the Graylog cluster."""
@@ -89,7 +89,7 @@ class GraylogAPI:
     def input_state(self, input_id):
         """Returns identified input with `given_id`."""
 
-        return self.get(f"/api/system/inputstates/{input_id}")
+        return self.get(f"/api/system/inputstates/{input_id}").text
 
     def activate_input(self, input_id):
         """Activates a launched input."""
@@ -99,7 +99,7 @@ class GraylogAPI:
     def search_logs(self, params):
         """Returns logs matching given `params` parameters."""
 
-        return self.get("/api/search/universal/relative", params=params)
+        return self.get("/api/search/universal/relative", params=params).text
 
 
 class GraylogLogging(HistoryMixin, BaseLogging):
