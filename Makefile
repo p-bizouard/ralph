@@ -147,7 +147,7 @@ stop: ## stops backend servers
 .PHONY: stop
 
 test: ## run back-end tests
-test: run-es
+test: run-es run-graylog
 	bin/pytest
 .PHONY: test
 

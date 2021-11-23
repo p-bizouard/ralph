@@ -182,6 +182,18 @@ jobs:
           password: $DOCKER_HUB_PASSWORD
         environment:
           discovery.type: single-node
+      - image: mongo:4.2
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+      - image: graylog:4.2.1
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+        environment:
+          - GRAYLOG_PASSWORD_SECRET=somepasswordpepper
+          - GRAYLOG_ROOT_PASSWORD_SHA2=d74ff0ee8da3b9806b18c877dbf29bbde50b5bd8e4dad7a3a725000feb82e8f1
+          - GRAYLOG_HTTP_EXTERNAL_URI=http://${HOSTNAME}:9000/
     working_directory: ~/fun
     steps:
       - checkout
@@ -194,6 +206,10 @@ jobs:
             dockerize \
               -wait tcp://${HOSTNAME}:9200 \
               -timeout 60s \
+              -wait tcp://${HOSTNAME}:27017 \
+              -timeout 60s \
+              -wait tcp://${HOSTNAME}:9000 \
+              -timeout 60s
               ~/.local/bin/pytest
 
   # ---- Tray jobs (k8s) ----
