@@ -4,7 +4,6 @@ import json
 import logging
 import sys
 from itertools import zip_longest
-from os import stat
 
 import requests
 from logging_gelf.formatters import GELFFormatter
